@@ -1,0 +1,265 @@
+#include <iostream>
+#include <string>
+
+/*
+Zadanie 1: linijka 140
+Zadanie 2: linikja 24, 57
+Zadanie 3: linijka 217
+*/
+
+using namespace std;
+
+class Oven;
+class PublicMethods;
+
+class Clock
+{
+	string minute, hour;
+	int day, month, year;
+	friend void printInfo(const Oven _oven); 
+	friend class Alarm;
+	
+	//Klasa zagniezdzona
+
+	class Alarm
+	{
+		string _minute, _hour;
+		int _time;
+
+	public:
+
+		Alarm() : _minute{"00"}, _hour{"00"}, _time{0} {} //konstruktor
+		
+		void getInfo() 
+		{
+			cout << "Ustawienia alarmu: " << endl;
+			cout << "Godzina: " << _hour << ":" << _minute << endl <<
+				"Alarm za: " << _time << " minut." << endl;
+		}
+
+	};
+
+public:
+	Clock() : Clock("00", "00"){}
+	
+	Clock(string minute, string hour)
+	{
+		this->minute = minute;
+		this->hour = hour;
+		day = 14; month = 12; year = 2019;
+	}
+
+	void printInfo()
+	{
+		cout << hour << ":" << minute << " ANNO DOMINI: " << day << "/" << month << "/" << year << endl;
+	}
+
+	//UseInnerClass
+
+	void useInnerClass()
+	{
+		Alarm name;
+		name.getInfo();
+		
+	}
+
+
+};
+
+class Oven
+{
+
+	int temperature;
+	int time;
+	int wentylacja; // wlaczona = 1, wylaczona = 0
+	string modeList[5] = { "termoobieg", "grill", "obustronnie", "rozmrazanie", "podgrzewanie" };
+	string mode = "brak";
+	const int maxTemperature = 200;
+
+
+
+
+	Clock* clock;
+
+	
+	friend void printInfo(const Oven _oven);
+	friend void changeTemperature(Oven ref);
+	friend PublicMethods;
+
+public:
+	
+	// konstruktory
+
+	Oven(int temperature, int time, string mode, Clock * clock = new Clock("00", "12")) : 
+		temperature((temperature > 200)? temperature = 200 : temperature)
+		//sprawdza, czy temperatura jest wyzsza niz 200 stopni, jak tak to zmiena na 200
+	{
+		this->time = time;
+		this->mode = mode;
+		this->clock = clock;	
+	}
+
+	Oven() : Oven(0, 0, "Brak") {}
+
+	Oven(int temperature, int time) : Oven(temperature, time, "Brak")
+	{
+		wentylacja = 0;
+	}
+
+	//setVariable
+
+	void setTemperature(int temperature)
+	{
+		this->temperature = temperature;
+	}
+
+	void setMode(string mode)
+	{
+		this->mode = mode;
+	}
+
+	void setTime(int time)
+	{
+		this->time = time;
+	}
+
+	//getVariable
+
+	int getTime();
+	int getTemperature();
+	string getMode();
+	void getInfo() const;
+	void printModes();
+
+
+};
+
+
+//Nowa klasa zaprzyjazniona z Oven
+
+class PublicMethods
+{
+	
+
+public:
+
+	// Publiczne metody zawierajace referencje do obiektu klasy Oven
+
+	void increaseTemperature(Oven& ref, int tem)
+	{
+		ref.temperature += tem;
+	}
+
+	void checkMode(Oven &ref)
+	{
+		cout << "Obecnie uzywany tryb to: " << ref.mode << "." << endl;
+	}
+
+
+};
+
+//Funkcje globalne, mające dostęp do klasy Oven i klasy Clock
+
+void printInfo(const Oven _oven) 
+{
+	cout << "Temperatura: " << _oven.temperature << endl;
+	cout << "Tryb: " << _oven.mode << endl;
+	cout << "Czas: " << _oven.time << endl;
+	cout << "Maksymalna temperatura: " << _oven.maxTemperature << endl;
+	cout << "Aktualna godzina: " << _oven.clock->hour << ":" << _oven.clock->minute << endl;
+}
+
+void changeTemperature(Oven ref) 
+
+{
+	int tTemperature;
+	cout << "Procedura zmiany temperatury. Podaj wartosc: ";
+	cin >> tTemperature; ref.temperature = tTemperature;
+	cout << "Temperature zmieniona pomyslnie. Obecna wartosc: " << ref.temperature << endl;
+}
+
+
+
+//MAIN MAIN MAIN MAIN MAIN MAIN
+
+int main()
+{ 
+	/*Oven* c1 = new Oven(300, 40, "Termoobieg"); 
+	Oven essa(150, 30, "Brak");
+	Oven* c2 = new Oven; 
+	Oven* c3 = new Oven(300, 300);
+	c2->getInfo();
+	c2->setTemperature(90);
+	c2->setMode("rozmrazanie");
+	c2->setTime(30);
+	c2->getInfo();
+	Oven k1(111, 60, "Grill");
+	c1->printModes();
+	cout << endl;
+	c2->getInfo();
+	cout << endl;
+	k1.getInfo();
+	//changeTemperature(k1);
+	printInfo(k1);
+	delete c1; c1 = nullptr;
+	delete c2; c2 = nullptr;
+	delete c3; c3 = nullptr;
+	cout << "\nPodpunkt 4.3################" << endl;
+	const Oven* a1 = new Oven(100, 20, "Termoobieg");
+	printInfo(*a1);
+	//a1->setTemperature  
+	//Nie da się wywołać metody nie będącej typu constant na obiekcie z modyfikatorem const
+	delete a1; a1 = nullptr;
+	PublicMethods x;
+	essa.getInfo();
+	x.increaseTemperature(essa);
+	essa.getInfo();*/
+
+	Oven g5(110, 40, "Grill");
+	PublicMethods fr;
+	fr.checkMode(g5);
+	fr.increaseTemperature(g5, 45);
+	g5.getInfo();
+	Clock a4;
+	a4.printInfo();
+	a4.useInnerClass();
+	//Alarm alarm;
+	//Niemozliwym jest utworzemnie obiektu klasy wewnetrznej poza klasa zewnetrzna
+
+	return 0;
+}
+
+
+//METODY klasy Oven
+
+
+void Oven::getInfo() const
+{
+	cout << "Temperatura: " << temperature << " stopni" << endl;
+	cout << "Tryb: " << mode << "." << endl;
+	cout << "Czas trwania: " << time << " minut.\n" << endl;
+}
+
+int Oven::getTime()
+{
+	return time;
+}
+
+string Oven::getMode()
+{
+	return mode;
+}
+
+int Oven::getTemperature()
+{
+	return temperature;
+}
+
+void Oven::printModes()
+{
+	cout << "Dostepne tryby" << endl;
+	for (int i = 0; i < 5; i++)
+	{
+		cout << modeList[i] << endl;
+	}
+}
