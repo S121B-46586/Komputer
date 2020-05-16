@@ -1,0 +1,334 @@
+#include <iostream>
+#include <string>
+
+
+using namespace std;
+
+class Oven;
+class PublicMethods;
+
+class Clock
+{
+	string minute, hour;
+	int day, month, year;
+	friend void printInfo(const Oven _oven);
+	friend class Alarm;
+
+	//Klasa zagniezdzona
+
+	class Alarm
+	{
+		string _minute, _hour;
+		int _time;
+
+	public:
+
+		Alarm() : _minute{ "00" }, _hour{ "00" }, _time{ 0 } {} //konstruktor
+
+		void getInfo()
+		{
+			cout << "Ustawienia alarmu: " << endl;
+			cout << "Godzina: " << _hour << ":" << _minute << endl <<
+				"Alarm za: " << _time << " minut." << endl;
+		}
+
+	};
+
+public:
+	Clock() : Clock("00", "00") {}
+
+	Clock(string minute, string hour)
+	{
+		this->minute = minute;
+		this->hour = hour;
+		day = 14; month = 12; year = 2019;
+	}
+
+	void printInfo()
+	{
+		cout << hour << ":" << minute << " ANNO DOMINI: " << day << "/" << month << "/" << year << endl;
+	}
+
+	//UseInnerClass
+
+	void useInnerClass()
+	{
+		Alarm name;
+		name.getInfo();
+
+	}
+
+
+};
+
+//Glowna klasa
+
+class Oven 
+{
+
+	int temperature;
+	int time;
+	int wentylacja; // wlaczona = 1, wylaczona = 0
+	string modeList[5] = { "termoobieg", "grill", "obustronnie", "rozmrazanie", "podgrzewanie" };
+	string mode = "brak";
+	const int maxTemperature = 200;
+
+
+	Clock* clock;
+
+
+	friend void printInfo(const Oven _oven);
+	friend void changeTemperature(Oven ref);
+	friend PublicMethods;
+
+	//Zaprzyjaznienie z funkcja globalna (przeciazenie)
+
+	friend Oven operator+(int i, Oven& temp);
+
+public:
+
+	// konstruktory
+
+	Oven(int temperature, int time, string mode, Clock* clock = new Clock("00", "12")) :
+		temperature((temperature > 200) ? temperature = 200 : temperature)
+		//sprawdza, czy temperatura jest wyzsza niz 200 stopni, jak tak to zmiena na 200
+	{
+		this->time = time;
+		this->mode = mode;
+		this->clock = clock;
+	}
+
+	Oven() : Oven(0, 0, "Brak") {}
+
+	Oven(int temperature, int time) : Oven(temperature, time, "Brak")
+	{
+		wentylacja = 0;
+	}
+
+	//setVariable
+
+	void setTemperature(int temperature)
+	{
+		this->temperature = temperature;
+	}
+
+	void setMode(string mode)
+	{
+		this->mode = mode;
+	}
+
+	void setTime(int time)
+	{
+		this->time = time;
+	}
+
+	//getVariable
+
+	int getTime();
+	int getTemperature();
+	string getMode();
+	void getInfo() const;
+	void printModes();
+
+	//Przeciazanie operatorow -> Cwiczenie [5/1]
+	//Wykonuje operacje obiekt + liczba. Liczba zostaje dodana do pola z temperatura.
+
+	Oven operator+(int a)
+	{
+		this->temperature = temperature + a;
+		return *this;
+	}	
+
+};
+
+// Przeciazenie - funkcja globalna -> Cwiczenie [5/2]
+//Wykonuje operacje liczba + obiekt. Liczba zostaje dodana do pola z temperatura.
+
+Oven operator+(int i, Oven& temp)
+{
+	return temp.operator+(i);
+}
+
+
+
+
+//Nowa klasa zaprzyjazniona z Oven
+
+class PublicMethods
+{
+
+
+public:
+
+	// Publiczne metody zawierajace referencje do obiektu klasy Oven
+
+	void increaseTemperature(Oven& ref, int tem)
+	{
+		ref.temperature += tem;
+	}
+
+	void checkMode(Oven& ref)
+	{
+		cout << "Obecnie uzywany tryb to: " << ref.mode << "." << endl;
+	}
+
+
+};
+
+/////////////////////////////////////////////////
+// Klasy utworzone na potrzeby zadań 7,8 i 9.
+/////////////////////////////////////////////////
+//Klasa pochodna do klasy Oven [7.1], ma ona własne pola, gettery oraz settery
+
+class SteakOven : public Oven 
+{
+	int rarity; //Specjalny tryb dla steak'ów, określa jak bardzo ma być dopieczony, skala 0-100
+	int weight; // Waga
+
+public:
+
+	//Konstruktory [7.3]
+
+	SteakOven(int temperature, int time, int rarity, int weight) : Oven(temperature, time),
+		rarity(rarity), weight(weight) {}
+
+	SteakOven()
+	{
+		rarity = 80;
+		weight = 500;
+	}
+
+	//Gettery oraz settery dla klasy pochodnej [7.2]
+
+	void getInfo()
+	{
+		cout << "Temperatura: " << getTemperature() << endl;
+		cout << "Czas: " << getTime() << endl;
+		cout << "Uzywany tryb: " << getMode() << endl;
+		cout << "Rodzaj: " << getRarity() << endl;
+		cout << "Waga: " << getWeight() << endl;
+	}
+
+	int getRarity() 
+	{
+		return rarity;
+	}
+	int setRarity(int rarity)
+	{
+		this->rarity = rarity;
+	}
+	int getWeight()
+	{
+		return weight;
+	}
+	int setWeight(int weight)
+	{
+		this->weight = weight;
+	}
+
+};
+//Klasa abstrakcyjna [8.1.1]
+
+class Typeof_oven
+{
+	string name;
+
+public:
+
+	virtual void use() = 0;
+};
+
+class Furnace : public Typeof_oven
+{
+public:
+	void use()
+	{
+
+	}
+};
+////////////////////////////////////////////////////
+///////////////////////////////////////////////////
+
+//Funkcje globalne, mające dostęp do klasy Oven i klasy Clock
+
+void printInfo(const Oven _oven)
+{
+	cout << "Temperatura: " << _oven.temperature << endl;
+	cout << "Tryb: " << _oven.mode << endl;
+	cout << "Czas: " << _oven.time << endl;
+	cout << "Maksymalna temperatura: " << _oven.maxTemperature << endl;
+	cout << "Aktualna godzina: " << _oven.clock->hour << ":" << _oven.clock->minute << endl;
+}
+
+void changeTemperature(Oven ref)
+
+{
+	int tTemperature;
+	cout << "Procedura zmiany temperatury. Podaj wartosc: ";
+	cin >> tTemperature; ref.temperature = tTemperature;
+	cout << "Temperature zmieniona pomyslnie. Obecna wartosc: " << ref.temperature << endl;
+}
+
+
+
+//MAIN MAIN MAIN MAIN MAIN MAIN
+
+int main()
+{
+
+	//[7.3]
+	//Odpowiedzi na pytania
+	//1. Na liście inicjalizacyjnej konstruktora klasy pochodnej.
+	//2. Konstruktory zostaną wywołane najpierw dla klas bazowych potem dla pochodnych, w hierarchi starszy->młodszy
+	//3. Konstruktor bezparametrowy można wywołać w klasie bazowej
+
+	//Utworzenie obiektów [7.5.1]
+	Oven piec = Oven();
+	SteakOven piec1(200, 45, 50, 400);
+
+
+	piec1.getInfo();
+
+	//[7.5.2]
+	//Wydaje się że jest możliwe wywołanie z klasy pochodnej metody klasy bazowej, co pokazuje ten przykład
+	cout << "TEMPERATURA " << piec1.getTemperature() << endl;
+	cout << "TEMPERATURA2 " << piec.getTemperature() << endl;
+
+	piec.getInfo();
+	return 0;
+}
+
+
+//METODY klasy Oven
+
+
+void Oven::getInfo() const
+{
+	cout << "Temperatura: " << temperature << " stopni" << endl;
+	cout << "Tryb: " << mode << "." << endl;
+	cout << "Czas trwania: " << time << " minut.\n" << endl;
+}
+
+int Oven::getTime()
+{
+	return time;
+}
+
+string Oven::getMode()
+{
+	return mode;
+}
+
+int Oven::getTemperature()
+{
+	return temperature;
+}
+
+void Oven::printModes()
+{
+	cout << "Dostepne tryby" << endl;
+	for (int i = 0; i < 5; i++)
+	{
+		cout << modeList[i] << endl;
+	}
+}
